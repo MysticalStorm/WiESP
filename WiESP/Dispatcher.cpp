@@ -1,4 +1,4 @@
-#include "Dispatcher.h"
+﻿#include "Dispatcher.h"
 #include "SoftwareSerial.h"
 
 SoftwareSerial ArduinoSerial(5, 4, false, 256);
@@ -12,7 +12,8 @@ void DispatcherClass::init() {
 void DispatcherClass::update() {
 	int size = ArduinoSerial.available();
 	if (size > 0) {
-		SerialPrint("Arduino send", size);
+		//SerialPrint("Arduino send", size);
+		//SerialPrint("Сurrent collected bytes", dataSize);
 		read(size);
 	}
 
@@ -55,9 +56,8 @@ void DispatcherClass::read(int size) {
 		int value = ArduinoSerial.read();
 		data[i] = value;
 		//SerialPrint("Byte ", value);
-		SerialPrint("Char ", data[i]);
+		//SerialPrint("Char ", data[i]);
 	}
-	delay(500);
 	validateResponse(data, size);
 
 	delete data;
@@ -72,23 +72,23 @@ void DispatcherClass::validateResponse(char *data, int size) {
 				parseResponse();
 				dataSize = -1;
 				hasData = false;
-				SerialPrint("End found in first message", 0);
+				//SerialPrint("End found in first message", 0);
 			}
 			dataSize++;
 		}
 	} else {
-		for (int i = dataSize; i < dataSize + size; i++) {
+		for (int i = 0; i < size; i++) {
 			hasData = true;
 			if (collectData(data, i)) {
 				parseResponse();
 				dataSize = -1;
 				hasData = false;
-				SerialPrint("End found in last message", 0);
+				//SerialPrint("End found in last message", 0);
 			}
 			dataSize++;
 		}
 	}
-	SerialPrint("Total data", dataSize);
+	//SerialPrint("Total data", dataSize);
 }
 
 bool DispatcherClass::collectData(char *data, int element) {
@@ -101,7 +101,7 @@ bool DispatcherClass::collectData(char *data, int element) {
 
 Orientation DispatcherClass::parseResponse() {
 
-	SerialPrint("Data collected", dataSize);
+	//SerialPrint("Data collected", dataSize);
 
 	callBackRawData.clear();
 	for (int i = 0; i < dataSize; i++) {
