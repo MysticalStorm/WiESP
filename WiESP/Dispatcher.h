@@ -43,7 +43,7 @@ public:
 	 void read(int size);
 	 bool collectData(char *data, int element);
 	 void validateResponse(char *data, int size);
-	 Orientation parseResponse();
+	 void parseResponse();
 
 	 void SerialPrint(String message, int argument);
 	 void SerialPrint(String message, char argument);

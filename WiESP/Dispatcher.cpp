@@ -12,8 +12,8 @@ void DispatcherClass::init() {
 void DispatcherClass::update() {
 	int size = ArduinoSerial.available();
 	if (size > 0) {
-		//SerialPrint("Arduino send", size);
-		//SerialPrint("Сurrent collected bytes", dataSize);
+		SerialPrint("Arduino send", size);
+		SerialPrint("Сurrent collected bytes", dataSize);
 		read(size);
 	}
 
@@ -56,8 +56,9 @@ void DispatcherClass::read(int size) {
 		int value = ArduinoSerial.read();
 		data[i] = value;
 		//SerialPrint("Byte ", value);
-		//SerialPrint("Char ", data[i]);
+		Serial.print(data[i]);
 	}
+	Serial.println("<- ARDUINO SEND THIS");
 	validateResponse(data, size);
 
 	delete data;
@@ -72,9 +73,10 @@ void DispatcherClass::validateResponse(char *data, int size) {
 				parseResponse();
 				dataSize = -1;
 				hasData = false;
-				//SerialPrint("End found in first message", 0);
+				SerialPrint("End found in first message", 0);
 			}
 			dataSize++;
+			SerialPrint("I APPEND DATA SIZE FIRST", dataSize);
 		}
 	} else {
 		for (int i = 0; i < size; i++) {
@@ -83,9 +85,10 @@ void DispatcherClass::validateResponse(char *data, int size) {
 				parseResponse();
 				dataSize = -1;
 				hasData = false;
-				//SerialPrint("End found in last message", 0);
+				SerialPrint("End found in last message", 0);
 			}
 			dataSize++;
+			SerialPrint("I APPEND DATA SIZE SECOND", dataSize);
 		}
 	}
 	//SerialPrint("Total data", dataSize);
@@ -99,18 +102,62 @@ bool DispatcherClass::collectData(char *data, int element) {
 	return false;
 }
 
-Orientation DispatcherClass::parseResponse() {
+void DispatcherClass::parseResponse() {
 
 	//SerialPrint("Data collected", dataSize);
+	Serial.println("Parse Response and data size");
+	Serial.println(dataSize);
+	Serial.println("---------------------------");
 
 	callBackRawData.clear();
-	for (int i = 0; i < dataSize; i++) {
+	for (int i = 0; i < dataSize; i++)
+		callBackRawData.push_back(dataBufer[i]);
+	SerialPrint("Result", callBackRawData);
+	Serial.println("---------------------------");
+
+	if (dataBufer[0] == '0') {
+
+		Serial.println("I IN PARSING DATA");
+		String *parsed_str_array = new String[6];
+		int parse_index = 0;
+		for (int i = 2; i < dataSize; i++) {
+			char p = dataBufer[i];
+			if (p == ':') {
+				Serial.println("I FOUND : IN");
+				Serial.println(parse_index);
+				parse_index++;
+			} else {
+				Serial.println("I APPENDING DATA - ");
+				Serial.println(p);
+				parsed_str_array[parse_index] += p;
+				Serial.println("SUCCESS APPENDING");
+			}
+		}
+		Serial.println("Orientation");
+		Orientation orientation = {
+			atoi(parsed_str_array[0].c_str()),
+			atoi(parsed_str_array[1].c_str()),
+			atoi(parsed_str_array[2].c_str()),
+			atoi(parsed_str_array[3].c_str()),
+			atoi(parsed_str_array[4].c_str()),
+			atoi(parsed_str_array[5].c_str())
+		};
+		_callBack(orientation);
+		Serial.println("After callback");
+		delete parsed_str_array;
+	} else {
+		return;
+	}
+
+	callBackRawData.clear();
+	for (int i = 0; i < dataSize; i++)
 		callBackRawData.push_back(dataBufer[i]);
 		//SerialPrint("Parse tick", i);
 		//SerialPrint("Parse char", dataBufer[i]);
-	}
+	//}
 	//Serial.println(callBackRawData);
 	SerialPrint("Result", callBackRawData);
+	
 	//_callBack();
 }
 
